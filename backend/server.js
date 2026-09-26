@@ -97,6 +97,13 @@ const adminWalletLedgerSchema = new mongoose.Schema({
 });
 const AdminWalletLedger = mongoose.model('AdminWalletLedger', adminWalletLedgerSchema);
 
+const siteSettingsSchema = new mongoose.Schema({
+  key: { type: String, unique: true, required: true },
+  maintenanceMode: { type: Boolean, default: false },
+  maintenanceMessage: { type: String, default: 'We are currently performing scheduled maintenance. Please check back shortly.' }
+}, { timestamps: true });
+const SiteSettings = mongoose.model('SiteSettings', siteSettingsSchema);
+
 const depositSchema = new mongoose.Schema({
   reference: { type: String, unique: true },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -265,6 +272,9 @@ app.post('/api/auth/login', async (req, res) => {
     const user = await User.findOne({ email: cleanEmail(email) });
     if (!user || !(await bcrypt.compare(String(password || ''), user.passwordHash))) return res.status(401).json({ error: 'Invalid email or password' });
     const userData = { id: user._id, name: user.name, email: user.email, role: user.role };
+    // Every account, including administrators, must complete the PIN step.
+    // Administrators are then routed to the private calculator/PIN gateway
+    // before the Admin Dashboard is unlocked.
     const pendingToken = jwt.sign({ id: String(user._id), role: user.role, email: user.email, name: user.name, pinPending: true }, JWT_SECRET, { expiresIn: '10m' });
     res.json({ pinRequired: Boolean(user.pinHash), pinSetupRequired: !user.pinHash, pendingToken, user: userData });
   } catch (e) { console.error(e); res.status(500).json({ error: 'Unable to log in' }); }
@@ -310,6 +320,11 @@ app.get('/api/auth/me', auth, async (req, res) => {
   const user = await User.findById(req.user.id).select('-passwordHash');
   if (!user) return res.status(404).json({ error: 'User not found' });
   res.json({ user });
+});
+
+app.get('/api/site/maintenance', async (_req, res) => {
+  const settings = await SiteSettings.findOne({ key: 'site' }).lean();
+  res.json({ enabled: Boolean(settings?.maintenanceMode), message: settings?.maintenanceMessage || 'We are currently performing scheduled maintenance. Please check back shortly.' });
 });
 
 app.get('/api/products', async (req, res) => {
@@ -491,6 +506,31 @@ app.get('/api/user/orders', auth, async (req, res) => res.json(await Order.find(
 app.get('/api/admin/orders', auth, adminOnly, async (_req, res) => res.json(await Order.find().sort({ createdAt: -1 })));
 app.patch('/api/admin/orders/:id/status', auth, adminOnly, async (req, res) => { const order = await Order.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true }); res.json(order); });
 
+app.get('/api/admin/wallet/ledger', auth, adminOnly, async (_req, res) => {
+  const entries = await AdminWalletLedger.find().sort({ createdAt: -1 }).limit(100).lean();
+  res.json({ balance: await getAdminWalletBalance(), entries });
+});
+
+app.get('/api/admin/customers', auth, adminOnly, async (_req, res) => {
+  res.json(await User.find({ role: 'user' }).select('name email phone address createdAt').sort({ createdAt: -1 }).lean());
+});
+
+app.get('/api/admin/maintenance', auth, adminOnly, async (_req, res) => {
+  const settings = await SiteSettings.findOne({ key: 'site' }).lean();
+  res.json({ enabled: Boolean(settings?.maintenanceMode), message: settings?.maintenanceMessage || '' });
+});
+
+app.put('/api/admin/maintenance', auth, adminOnly, async (req, res) => {
+  const enabled = Boolean(req.body?.enabled);
+  const message = String(req.body?.message || 'We are currently performing scheduled maintenance. Please check back shortly.').trim();
+  const settings = await SiteSettings.findOneAndUpdate(
+    { key: 'site' },
+    { $set: { maintenanceMode: enabled, maintenanceMessage: message } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+  res.json({ enabled: settings.maintenanceMode, message: settings.maintenanceMessage });
+});
+
 app.get('/api/admin/overview', auth, adminOnly, async (_req, res) => {
   const [orders, paid, products, users, withdrawals, paidOrders] = await Promise.all([Order.countDocuments(), Order.countDocuments({ paymentStatus: 'paid' }), Product.countDocuments(), User.countDocuments({ role: 'user' }), Withdrawal.find({ status: { $in: ['pending','success'] } }), Order.find({ paymentStatus: 'paid' }).select('total totalUsd fxRate paystackFee netAmount paymentReserve adminWalletAmount')]);
   const grossRevenue = paidOrders.reduce((s, o) => s + Number(o.total || 0), 0);
@@ -503,7 +543,21 @@ app.get('/api/admin/overview', auth, adminOnly, async (_req, res) => {
   res.json({ orders, paidOrders: paid, products, users, grossRevenue, grossRevenueUsd, fees, netRevenue: ledgerBalance, revenue: grossRevenue, availableBalance, availableBalanceUsd: availableBalance / USD_TO_NGN_RATE, withdrawn, usdToNgnRate: USD_TO_NGN_RATE, paymentReserveRate: PAYMENT_RESERVE_RATE, retainedForPayment: retained, withdrawalAccount: { bankName: ADMIN_WITHDRAWAL_BANK_NAME, accountNumber: ADMIN_WITHDRAWAL_ACCOUNT_NUMBER, accountName: ADMIN_WITHDRAWAL_ACCOUNT_NAME } });
 });
 
-app.get('/api/admin/banks', auth, adminOnly, async (_req, res) => { const r = await fetch('https://api.paystack.co/bank?country=nigeria&currency=NGN&perPage=100'); const data = await r.json(); res.status(r.ok ? 200 : 400).json(data); });
+app.get('/api/admin/banks', auth, adminOnly, async (_req, res) => {
+  try {
+    if (!process.env.PAYSTACK_SECRET_KEY) return res.status(500).json({ error: 'PAYSTACK_SECRET_KEY is not configured' });
+    const all = [];
+    for (let page = 1; page <= 10; page++) {
+      const r = await fetch(`https://api.paystack.co/bank?country=nigeria&currency=NGN&perPage=100&page=${page}`, { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` } });
+      const data = await r.json();
+      if (!r.ok || !data.status) throw new Error(data.message || 'Unable to load Nigerian banks');
+      all.push(...(data.data || []));
+      if (!data.meta?.next || !data.data?.length) break;
+    }
+    const unique = [...new Map(all.map(b => [String(b.code), b])).values()].sort((a,b) => String(a.name).localeCompare(String(b.name)));
+    res.json({ status: true, data: unique, meta: { total: unique.length } });
+  } catch (e) { res.status(400).json({ error: e.message || 'Unable to load banks' }); }
+});
 app.post('/api/admin/verify-account', auth, adminOnly, async (req, res) => { if (!process.env.PAYSTACK_SECRET_KEY) return res.status(500).json({ error: 'PAYSTACK_SECRET_KEY is not configured' }); const { account_number, bank_code } = req.body; const r = await fetch(`https://api.paystack.co/bank/resolve?account_number=${encodeURIComponent(account_number)}&bank_code=${encodeURIComponent(bank_code)}`, { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` } }); const data = await r.json(); res.status(r.ok ? 200 : 400).json(data); });
 app.get('/api/admin/withdrawal-account', auth, adminOnly, async (_req, res) => {
   try {

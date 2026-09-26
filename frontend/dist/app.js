@@ -1,5 +1,5 @@
-const API_BASE = (window.SWH_API_BASE_URL || 'https://skincarewithhappy-backend.vercel.app/api').replace(/\/$/, '');
-const PAYSTACK_PUBLIC_KEY = window.SWH_PAYSTACK_PUBLIC_KEY || 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const API_BASE = (window.SWH_API_BASE_URL || '__API_BASE_URL__').replace(/\/$/, '');
+const PAYSTACK_PUBLIC_KEY = window.SWH_PAYSTACK_PUBLIC_KEY || '__PAYSTACK_PUBLIC_KEY__';
 let paystackScriptPromise;
 function loadPaystackScript(){
   if(window.PaystackPop) return Promise.resolve(window.PaystackPop);
@@ -27,7 +27,7 @@ function getByIdProduct(id){ return products.find(x=>String(x._id)===String(id))
 
 function layout(active='home'){
  document.body.insertAdjacentHTML('afterbegin',`<div class="announcement"><span>✨ Skincare With Happy</span><span class="announcement-copy">Quality skincare, trusted service, convenient online shopping.</span><span class="site-clock" id="siteClock" aria-label="Current local time"></span></div><div class="nav-wrap"><div class="container"><nav><a href="/" class="logo"><span class="logo-mark"><img src="/images/logo.png" alt="Skincare With Happy logo"></span><span>Skincare With<br/>Happy</span></a><div class="nav-links" id="navLinks"><a class="${active==='home'?'active':''}" href="/">Home</a><a class="${active==='shop'?'active':''}" href="/shop/">Shop</a><a class="${active==='collections'?'active':''}" href="/collections/">Collections</a><a class="${active==='about'?'active':''}" href="/about/">About</a><a class="${active==='reviews'?'active':''}" href="/reviews/">Reviews</a><a class="${active==='contact'?'active':''}" href="/contact/">Contact</a></div><div class="nav-actions"><button class="cart-btn" onclick="openCart()">🛒 Cart <span class="cart-count" id="cartCount">0</span></button><button class="menu-btn" onclick="toggleMenu()">☰</button><a class="btn" href="/shop/">Shop Now</a><a class="btn secondary" id="accountLink" href="/login/">Login</a></div></nav></div></div>`);
- document.body.insertAdjacentHTML('beforeend',`<footer><div class="container"><div class="footer-grid"><div><h3>Skincare With Happy</h3><p>A modern Nigerian skincare e-commerce platform built for simple shopping, secure payments and dependable customer service.</p></div><div><h4>Quick Links</h4><a href="/">Home</a><a href="/shop/">Shop</a><a href="/collections/">Collections</a><a href="/about/">About</a></div><div><h4>Shop</h4><a href="/shop/">Cleansers</a><a href="/shop/">Serums</a><a href="/shop/">Moisturizers</a><a href="/shop/">Sunscreen</a></div><div><h4>Customer Service</h4><a href="/contact/">Contact</a><a href="/cart/">Cart & Checkout</a><a href="/reviews/">Reviews</a><a href="#">Instagram | Facebook</a></div></div><div class="copyright">© <span id="year"></span> Skincare With Happy. All rights reserved. <span class="site-credit">Build and Designs by <strong>SP World Tech</strong>.</span></div></div></footer><div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div><aside class="cart-drawer" id="cartDrawer"><div class="cart-head"><h3>Your Shopping Cart</h3><button class="close-cart" onclick="closeCart()">×</button></div><div class="cart-items" id="cartItems"></div><div class="cart-bottom"><div class="total-row"><span>Total</span><span id="cartTotal">₦0</span></div><form class="checkout" onsubmit="payNow(event)"><input id="customerName" required placeholder="Customer full name"><input id="customerPhone" required placeholder="Phone number"><input id="customerEmail" type="email" required placeholder="Email address"><input id="deliveryAddress" required placeholder="Delivery address"><button class="btn" type="submit">Continue to Secure Payment</button><a class="btn secondary" href="/cart/">View Full Cart</a></form></div></aside><div class="toast" id="toast"></div>`);
+ document.body.insertAdjacentHTML('beforeend',`<footer><div class="container"><div class="footer-grid"><div><h3>Skincare With Happy</h3><p>A modern Nigerian skincare e-commerce platform built for simple shopping, secure payments and dependable customer service.</p></div><div><h4>Quick Links</h4><a href="/">Home</a><a href="/shop/">Shop</a><a href="/collections/">Collections</a><a href="/about/">About</a></div><div><h4>Shop</h4><a href="/shop/">Cleansers</a><a href="/shop/">Serums</a><a href="/shop/">Moisturizers</a><a href="/shop/">Sunscreen</a></div><div><h4>Customer Service</h4><a href="/contact/">Contact</a><a href="/cart/">Cart & Checkout</a><a href="/reviews/">Reviews</a><a href="#">Instagram | Facebook</a></div></div><div class="copyright">© <span id="year"></span> Skincare With Happy. All rights reserved. <span class="site-credit">Powered by <strong>SunShine Software Development Team</strong>.</span></div></div></footer><div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div><aside class="cart-drawer" id="cartDrawer"><div class="cart-head"><h3>Your Shopping Cart</h3><button class="close-cart" onclick="closeCart()">×</button></div><div class="cart-items" id="cartItems"></div><div class="cart-bottom"><div class="total-row"><span>Total</span><span id="cartTotal">₦0</span></div><form class="checkout" onsubmit="payNow(event)"><input id="customerName" required placeholder="Customer full name"><input id="customerPhone" required placeholder="Phone number"><input id="customerEmail" type="email" required placeholder="Email address"><input id="deliveryAddress" required placeholder="Delivery address"><button class="btn" type="submit">Continue to Secure Payment</button><a class="btn secondary" href="/cart/">View Full Cart</a></form></div></aside><div class="toast" id="toast"></div>`);
  if(getById('year')) getById('year').textContent=new Date().getFullYear();
  const u=(()=>{try{return JSON.parse(localStorage.getItem('swh_user')||'null')}catch{return null}})(); const al=getById('accountLink'); if(al){al.textContent=u? (u.role==='admin'?'Admin':'My Account'):'Login'; al.href=u?(u.role==='admin'?'/admin/':'/dashboard/'):'/login/';}
  updateCart();
@@ -142,4 +142,20 @@ function startHeroRoll(){
   const phrases=['skincare products.','happy routines.','trusted skincare.','everyday confidence.']; let i=0;
   setInterval(()=>{el.classList.add('rolling-out');setTimeout(()=>{i=(i+1)%phrases.length;el.textContent=phrases[i];el.classList.remove('rolling-out');el.classList.add('rolling-in');setTimeout(()=>el.classList.remove('rolling-in'),420);},260);},2800);
 }
-window.addEventListener('DOMContentLoaded',()=>{if(getById('productGrid')) fetchProducts(); renderCartPage(); startSiteClock(); startHeroRoll();});
+window.addEventListener('DOMContentLoaded',()=>{if(getById('productGrid')) fetchProducts(); renderCartPage(); startSiteClock(); startHeroRoll(); checkMaintenanceMode();});
+
+async function checkMaintenanceMode(){
+  const path=location.pathname;
+  if(path.startsWith('/admin/')||path.startsWith('/admin-login/')) return;
+  try{
+    const r=await fetch(`${API_BASE}/site/maintenance?_=${Date.now()}`);
+    if(!r.ok)return;
+    const d=await r.json();
+    if(!d.enabled)return;
+    const overlay=document.createElement('div');
+    overlay.id='maintenanceOverlay';
+    overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(255,255,255,.98);display:grid;place-items:center;padding:24px;text-align:center;font-family:inherit;';
+    overlay.innerHTML=`<div style="max-width:560px"><h1 style="margin-bottom:12px">Store Maintenance</h1><p style="line-height:1.7;color:#667085">${String(d.message||'We are currently performing scheduled maintenance. Please check back shortly.').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}</p><p style="font-size:.9rem;color:#98a2b3">The administrator dashboard remains available.</p></div>`;
+    document.body.appendChild(overlay);
+  }catch(_e){}
+}

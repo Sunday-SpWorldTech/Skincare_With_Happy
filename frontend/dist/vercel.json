@@ -7,6 +7,10 @@
       "destination": "/shop/index.html"
     },
     {
+      "source": "/products",
+      "destination": "/products/index.html"
+    },
+    {
       "source": "/collections",
       "destination": "/collections/index.html"
     },
@@ -40,11 +44,7 @@
     },
     {
       "source": "/admin",
-      "destination": "/admin-login/index.html"
-    },
-    {
-      "source": "/admin-dashboard",
-      "destination": "/admin-dashboard/index.html"
+      "destination": "/admin/index.html"
     },
     {
       "source": "/admin-login",

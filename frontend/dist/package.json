@@ -4,6 +4,6 @@
   "private": true,
   "scripts": {
     "build": "node build.js",
-    "dev": "npx serve . -l 3000"
+    "dev": "python -m http.server 3000"
   }
 }

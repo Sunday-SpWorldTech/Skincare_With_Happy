@@ -188,49 +188,14 @@ async function ensureAdmin() {
   else if (existing.role !== 'admin') { existing.role = 'admin'; existing.passwordHash = hash; await existing.save(); }
 }
 
-const STARTER_PRODUCTS = [
-  { name:'CeraVe Hydrating Cleanser', category:'Cleanser', price:15.00, old_price:16.50, stock:25, description:'Gentle daily cleanser for comfortable cleansing and lasting hydration.', image_url:'/images/products/product-01.png' },
-  { name:'CeraVe Foaming Cleanser', category:'Cleanser', price:13.67, old_price:15.00, stock:25, description:'Foaming facial cleanser designed for normal to oily skin.', image_url:'/images/products/product-02.png' },
-  { name:'CeraVe Moisturizing Cream', category:'Moisturizer', price:15.00, old_price:16.50, stock:25, description:'Rich moisturizing cream for dry to very dry skin.', image_url:'/images/products/product-03.png' },
-  { name:'CeraVe Daily Moisturizing Lotion', category:'Moisturizer', price:14.97, old_price:16.00, stock:25, description:'Lightweight daily body and face moisturizer with ceramides.', image_url:'/images/products/product-04.png' },
-  { name:'The Ordinary Niacinamide 10% + Zinc 1%', category:'Serum', price:12.00, old_price:13.50, stock:30, description:'Lightweight niacinamide serum for an even-looking complexion.', image_url:'/images/products/product-05.png' },
-  { name:'The Ordinary Hyaluronic Acid 2% + B5', category:'Serum', price:13.33, old_price:15.00, stock:30, description:'Hydrating serum formulated to support a plump, comfortable feel.', image_url:'/images/products/product-06.png' },
-  { name:'The Ordinary Glycolic Acid 7% Toner', category:'Toner', price:18.67, old_price:20.00, stock:25, description:'Exfoliating toner for smoother-looking skin and refreshed texture.', image_url:'/images/products/product-07.png' },
-  { name:'The Ordinary Azelaic Acid 10%', category:'Treatment', price:18.00, old_price:20.00, stock:20, description:'Light cream suspension for a more even-looking skin tone.', image_url:'/images/products/product-08.png' },
-  { name:'COSRX Advanced Snail 96 Mucin Essence', category:'Essence', price:14.67, old_price:16.00, stock:25, description:'Lightweight snail mucin essence for hydration and a healthy glow.', image_url:'/images/products/product-09.png' },
-  { name:'COSRX Advanced Snail 92 Cream', category:'Moisturizer', price:12.33, old_price:14.00, stock:25, description:'Comforting all-in-one cream with a soft, hydrated finish.', image_url:'/images/products/product-10.png' },
-  { name:'COSRX Low pH Good Morning Cleanser', category:'Cleanser', price:10.67, old_price:12.00, stock:30, description:'Low-pH gel cleanser for a fresh, balanced cleanse.', image_url:'/images/products/product-11.png' },
-  { name:'COSRX Salicylic Acid Daily Cleanser', category:'Cleanser', price:10.93, old_price:12.27, stock:25, description:'Daily cleanser with salicylic acid for oily and blemish-prone skin.', image_url:'/images/products/product-12.png' },
-  { name:'Beauty of Joseon Glow Serum', category:'Serum', price:11.00, old_price:12.50, stock:25, description:'Propolis and niacinamide serum for a nourished-looking glow.', image_url:'/images/products/product-13.png' },
-  { name:'Beauty of Joseon Glow Deep Serum', category:'Serum', price:11.00, old_price:12.50, stock:25, description:'Rice and alpha-arbutin serum for a brighter-looking complexion.', image_url:'/images/products/product-14.png' },
-  { name:'Beauty of Joseon Relief Sun SPF50+', category:'Sunscreen', price:14.67, old_price:16.00, stock:30, description:'Daily sunscreen with a comfortable lightweight finish.', image_url:'/images/products/product-15.png' },
-  { name:'Beauty of Joseon Dynasty Cream', category:'Moisturizer', price:16.00, old_price:18.00, stock:20, description:'Nourishing cream designed for a soft, hydrated skin feel.', image_url:'/images/products/product-16.png' },
-  { name:'ANUA Niacinamide 10% + TXA 4% Serum', category:'Serum', price:12.00, old_price:13.50, stock:25, description:'Targeted serum combining niacinamide and tranexamic acid.', image_url:'/images/products/product-17.png' },
-  { name:'ANUA Azelaic Acid 10% Serum', category:'Serum', price:11.00, old_price:12.50, stock:25, description:'Gentle serum for an even-looking and calm-looking complexion.', image_url:'/images/products/product-18.png' },
-  { name:'ANUA Zero-Cast Moisturizing Sunscreen', category:'Sunscreen', price:9.00, old_price:10.67, stock:30, description:'Daily moisturizing sunscreen designed for a comfortable finish.', image_url:'/images/products/product-19.png' },
-  { name:'Isntree Green Tea Fresh Toner', category:'Toner', price:7.67, old_price:9.00, stock:25, description:'Refreshing toner with a lightweight, comfortable skin feel.', image_url:'/images/products/product-20.png' },
-  { name:'La Roche-Posay Anthelios UVMune SPF50+', category:'Sunscreen', price:14.67, old_price:16.00, stock:25, description:'High-protection daily sunscreen with a fluid texture.', image_url:'/images/products/product-21.png' },
-  { name:'La Roche-Posay Toleriane Moisturizer', category:'Moisturizer', price:15.33, old_price:17.00, stock:20, description:'Comforting moisturizer for a simple daily skincare routine.', image_url:'/images/products/product-22.png' },
-  { name:'Neutrogena Hydro Boost Water Gel', category:'Moisturizer', price:11.33, old_price:12.67, stock:25, description:'Light gel moisturizer for fresh-feeling hydration.', image_url:'/images/products/product-23.png' },
-  { name:'Neutrogena Oil-Free Acne Wash', category:'Cleanser', price:11.00, old_price:12.50, stock:25, description:'Refreshing cleanser for oily and blemish-prone skin.', image_url:'/images/products/product-24.png' },
-  { name:'Garnier Vitamin C Micellar Water', category:'Cleanser', price:7.27, old_price:8.50, stock:30, description:'Micellar cleansing water for a quick, fresh cleanse.', image_url:'/images/products/product-25.png' },
-  { name:'Garnier Vitamin C Day Cream', category:'Moisturizer', price:11.10, old_price:12.33, stock:25, description:'Daily cream with a bright, fresh skincare finish.', image_url:'/images/products/product-26.png' },
-  { name:'Simple Refreshing Facial Wash', category:'Cleanser', price:3.33, old_price:4.00, stock:30, description:'Simple everyday facial wash for a clean, comfortable feel.', image_url:'/images/products/product-27.png' },
-  { name:'Dove Beauty Cream Bar', category:'Body Care', price:0.83, old_price:1.00, stock:40, description:'Cream bar cleanser for gentle everyday body care.', image_url:'/images/products/product-28.png' },
-  { name:'Advanced Clinicals Vitamin C Cream', category:'Body Care', price:10.67, old_price:12.00, stock:25, description:'Vitamin C body cream for a smooth, moisturized skin feel.', image_url:'/images/products/product-29.png' },
-  { name:'Dr Teal’s Nourishing Body Lotion', category:'Body Care', price:4.50, old_price:5.00, stock:30, description:'Nourishing body lotion for soft, comfortable everyday skin.', image_url:'/images/products/product-30.png' }
-];
-
-async function seedStarterProducts() {
-  for (const item of STARTER_PRODUCTS) {
+async function ensureStarterProducts() {
+  const starterProducts = [
+    { name: 'Hydrating Cleanser', category: 'Cleansers', description: 'Everyday cleansers essential from Skincare With Happy.', price: 12.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-01.svg' },    { name: 'Gentle Foaming Cleanser', category: 'Cleansers', description: 'Everyday cleansers essential from Skincare With Happy.', price: 13.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-02.svg' },    { name: 'Vitamin C Brightening Cleanser', category: 'Cleansers', description: 'Everyday cleansers essential from Skincare With Happy.', price: 14.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-03.svg' },    { name: 'Salicylic Acid Cleanser', category: 'Cleansers', description: 'Everyday cleansers essential from Skincare With Happy.', price: 15.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-04.svg' },    { name: 'Hyaluronic Acid Serum', category: 'Serums', description: 'Everyday serums essential from Skincare With Happy.', price: 17.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-05.svg' },    { name: 'Niacinamide 10% Serum', category: 'Serums', description: 'Everyday serums essential from Skincare With Happy.', price: 16.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-06.svg' },    { name: 'Vitamin C Glow Serum', category: 'Serums', description: 'Everyday serums essential from Skincare With Happy.', price: 19.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-07.svg' },    { name: 'Alpha Arbutin Serum', category: 'Serums', description: 'Everyday serums essential from Skincare With Happy.', price: 18.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-08.svg' },    { name: 'Retinol Renewal Serum', category: 'Serums', description: 'Everyday serums essential from Skincare With Happy.', price: 21.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-09.svg' },    { name: 'Azelaic Acid Treatment', category: 'Treatments', description: 'Everyday treatments essential from Skincare With Happy.', price: 20.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-10.svg' },    { name: 'Glycolic Acid Toner', category: 'Toners', description: 'Everyday toners essential from Skincare With Happy.', price: 18.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-11.svg' },    { name: 'Hydrating Toner', category: 'Toners', description: 'Everyday toners essential from Skincare With Happy.', price: 14.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-12.svg' },    { name: 'Soothing Essence', category: 'Toners', description: 'Everyday toners essential from Skincare With Happy.', price: 17.49, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-13.svg' },    { name: 'Daily Moisturizing Cream', category: 'Moisturizers', description: 'Everyday moisturizers essential from Skincare With Happy.', price: 15.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-14.svg' },    { name: 'Ceramide Barrier Cream', category: 'Moisturizers', description: 'Everyday moisturizers essential from Skincare With Happy.', price: 18.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-15.svg' },    { name: 'Oil-Free Gel Moisturizer', category: 'Moisturizers', description: 'Everyday moisturizers essential from Skincare With Happy.', price: 16.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-16.svg' },    { name: 'Shea Body Butter', category: 'Body Care', description: 'Everyday body care essential from Skincare With Happy.', price: 13.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-17.svg' },    { name: 'Nourishing Body Lotion', category: 'Body Care', description: 'Everyday body care essential from Skincare With Happy.', price: 12.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-18.svg' },    { name: 'Exfoliating Body Wash', category: 'Body Care', description: 'Everyday body care essential from Skincare With Happy.', price: 11.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-19.svg' },    { name: 'Gentle Shower Gel', category: 'Body Care', description: 'Everyday body care essential from Skincare With Happy.', price: 10.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-20.svg' },    { name: 'Daily SPF 50 Sunscreen', category: 'Sunscreen', description: 'Everyday sunscreen essential from Skincare With Happy.', price: 18.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-21.svg' },    { name: 'Invisible SPF 50 Gel', category: 'Sunscreen', description: 'Everyday sunscreen essential from Skincare With Happy.', price: 20.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-22.svg' },    { name: 'Mineral SPF 50 Cream', category: 'Sunscreen', description: 'Everyday sunscreen essential from Skincare With Happy.', price: 19.49, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-23.svg' },    { name: 'Lip Repair Balm', category: 'Lip Care', description: 'Everyday lip care essential from Skincare With Happy.', price: 7.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-24.svg' },    { name: 'Overnight Lip Mask', category: 'Lip Care', description: 'Everyday lip care essential from Skincare With Happy.', price: 9.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-25.svg' },    { name: 'Eye Repair Cream', category: 'Treatments', description: 'Everyday treatments essential from Skincare With Happy.', price: 21.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-26.svg' },    { name: 'Clay Purifying Mask', category: 'Masks', description: 'Everyday masks essential from Skincare With Happy.', price: 13.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-27.svg' },    { name: 'Hydrating Sheet Mask Set', category: 'Masks', description: 'Everyday masks essential from Skincare With Happy.', price: 11.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-28.svg' },    { name: 'Complete Glow Routine Set', category: 'Sets', description: 'Everyday sets essential from Skincare With Happy.', price: 49.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-29.svg' },    { name: 'Sensitive Skin Care Set', category: 'Sets', description: 'Everyday sets essential from Skincare With Happy.', price: 45.99, currency: 'USD', stock: 25, rating: 5, active: true, image_url: '/images/products/starter-30.svg' }
+  ];
+  for (const item of starterProducts) {
     const slug = slugify(item.name);
-    await Product.updateOne(
-      { slug },
-      { $setOnInsert: { ...item, slug, currency:'USD', rating:5, active:true } },
-      { upsert:true }
-    );
+    await Product.updateOne({ slug }, { $setOnInsert: { ...item, slug, old_price: null } }, { upsert: true });
   }
-  console.log(`Starter catalogue checked: ${STARTER_PRODUCTS.length} products.`);
 }
 
 async function migrateLegacyProductPrices() {
@@ -253,7 +218,7 @@ async function connectMongo() {
     .then(async () => {
       await migrateLegacyProductPrices();
       await ensureAdmin();
-      await seedStarterProducts();
+      await ensureStarterProducts();
       console.log('MongoDB connected');
       return mongoose.connection;
     })
@@ -292,18 +257,6 @@ app.post('/api/auth/register', async (req, res) => {
     const user = await User.create({ name: String(name).trim(), email: normalized, passwordHash, pinHash, phone, address, role: 'user' });
     res.status(201).json({ ok: true, message: 'Account created. Please sign in with your email and password.' });
   } catch (e) { console.error(e); res.status(500).json({ error: 'Unable to create account' }); }
-});
-
-app.post('/api/auth/admin-pin/start', async (req, res) => {
-  try {
-    await connectMongo();
-    if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) return res.status(500).json({ error: 'Admin account is not configured on the server' });
-    const email = cleanEmail(process.env.ADMIN_EMAIL);
-    const user = await User.findOne({ email });
-    if (!user || user.role !== 'admin') return res.status(403).json({ error: 'Administrator account is not available' });
-    const pendingToken = jwt.sign({ id: String(user._id), role: user.role, email: user.email, name: user.name, pinPending: true }, JWT_SECRET, { expiresIn: '10m' });
-    res.json({ pendingToken, pinSetupRequired: !user.pinHash, user: { id: user._id, name: user.name, role: user.role } });
-  } catch (e) { console.error(e); res.status(500).json({ error: 'Unable to start admin PIN access' }); }
 });
 
 app.post('/api/auth/login', async (req, res) => {

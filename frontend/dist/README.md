@@ -66,3 +66,6 @@ The backend verifies successful transactions and also exposes `/api/paystack/web
 ## Database
 
 Run `backend/db/seed.js` once against your production PostgreSQL database to create the tables and seed starter skincare products.
+
+
+The catalogue includes 30 starter products and the `/products/` page mirrors the shop catalogue. New products uploaded from Admin are returned by the same `/api/products` endpoint and automatically appear on Shop, Products, and the authenticated customer Dashboard. Checkout requires a registered/logged-in customer.

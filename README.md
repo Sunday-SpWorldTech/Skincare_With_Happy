@@ -66,4 +66,4 @@ Never put `PAYSTACK_SECRET_KEY`, MongoDB passwords, or JWT secrets in frontend c
 
 ## Footer credit
 
-Public, customer, account, and admin pages include the requested footer credit: **Build and Designs by SP World Tech.**
+Public, customer, account, and admin pages include the requested footer credit: **Powered by SunShine Software Development Team**

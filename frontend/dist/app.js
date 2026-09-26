@@ -13,9 +13,9 @@ function loadPaystackScript(){
   });
   return paystackScriptPromise;
 }
-const money = v => '$' + Number(v || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const SALES_PHONE = '2348163294809';
-const SALES_PHONE_DISPLAY = '+234 816 329 4809';
+const money = v => '₦' + (Number(v || 0) * 1500).toLocaleString('en-NG', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+const SALES_PHONE = '2347038186482';
+const SALES_PHONE_DISPLAY = '+234 703 818 6482';
 function whatsappProduct(id){ const p=getByIdProduct(id); if(!p)return; const text=`Hello Skincare With Happy, I want to buy ${p.name} for ${money(p.price)}. Please assist me with my order.`; window.open(`https://wa.me/${SALES_PHONE}?text=${encodeURIComponent(text)}`,'_blank','noopener'); }
 let products = [];
 let currentFilter = 'All';
@@ -53,6 +53,7 @@ async function fetchProducts(){
 }
 function addToCart(id,open=true){
  const p=getByIdProduct(id); if(!p)return;
+ if(open && !localStorage.getItem('swh_token')){ showToast('Please register or log in to continue to checkout.'); setTimeout(()=>location.href='/login/?return=/cart/',650); return; }
  const e=cart.find(x=>String(x.id)===String(id)); e ? e.qty++ : cart.push({id:p._id,name:p.name,price:Number(p.price),image_url:p.image_url,qty:1});
  saveCart(); updateCart(); showToast(p.name+' added to cart'); if(open)openCart();
 }
@@ -117,7 +118,7 @@ function renderProducts(limit){
  const q=(getById('searchInput')?.value||'').toLowerCase().trim();
  let list=products.filter(p=>(currentFilter==='All'||p.category===currentFilter)&&(!q||`${p.name} ${p.category} ${p.description}`.toLowerCase().includes(q)));
  if(limit)list=list.slice(0,limit);
- grid.innerHTML=list.map(p=>`<article class="product"><div class="product-img"><img src="${p.image_url || '/images/general/products-still-life.png'}" onerror="this.onerror=null;this.src='/images/general/products-still-life.png'" alt="${p.name}"><span class="badge">${p.category}</span></div><div class="product-body"><div class="product-top"><h3>${p.name}</h3><div class="stars">${'★'.repeat(Math.round(p.rating||5))}${'☆'.repeat(5-Math.round(p.rating||5))}</div></div><p>${p.description||''}</p><div class="price-row"><span class="price">${money(p.price)}</span>${p.old_price?`<span class="old-price">${money(p.old_price)}</span>`:''}</div><div class="product-actions"><button class="mini-btn light" onclick="addToCart('${p._id}',false)">Add to Cart</button><button class="mini-btn" onclick="addToCart('${p._id}',true)">Buy Now</button><button class="mini-btn whatsapp-btn" onclick="whatsappProduct('${p._id}')">WhatsApp</button></div></div></article>`).join('')||'<div class="empty" style="grid-column:1/-1">No product found.</div>';
+ grid.innerHTML=list.map(p=>`<article class="product"><div class="product-img"><img src="${p.image_url}" alt="${p.name}"><span class="badge">${p.category}</span></div><div class="product-body"><div class="product-top"><h3>${p.name}</h3><div class="stars">${'★'.repeat(Math.round(p.rating||5))}${'☆'.repeat(5-Math.round(p.rating||5))}</div></div><p>${p.description||''}</p><div class="price-row"><span class="price">${money(p.price)}</span>${p.old_price?`<span class="old-price">${money(p.old_price)}</span>`:''}</div><div class="product-actions"><button class="mini-btn light" onclick="addToCart('${p._id}',false)">Add to Cart</button><button class="mini-btn" onclick="addToCart('${p._id}',true)">Buy Now</button><button class="mini-btn whatsapp-btn" onclick="whatsappProduct('${p._id}')">WhatsApp</button></div></div></article>`).join('')||'<div class="empty" style="grid-column:1/-1">No product found.</div>';
 }
 function renderFilters(){const el=getById('filters');if(!el)return;const cats=['All',...new Set(products.map(p=>p.category))];el.innerHTML=cats.map(f=>`<button class="filter-btn ${f===currentFilter?'active':''}" onclick="currentFilter='${f.replaceAll("'","\\'")}';renderFilters();renderProducts();">${f}</button>`).join('');}
 function bindShop(){ getById('searchInput')?.addEventListener('input',()=>renderProducts()); fetchProducts(); }
